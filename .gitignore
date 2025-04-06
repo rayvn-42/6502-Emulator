@@ -1,0 +1,5 @@
+.Testing/
+Computer.log
+__pycache__/
+Computer/__pycache__/
+tempCodeRunnerFile.py
