@@ -9,7 +9,7 @@ This project aims to replicate the instruction set, memory architecture, and cyc
 - Support for various addressing mode (Immediate, Zero Page, Absolute, Indexed)
 - Emulation of CPU registers and flags
 
-**NOTE** - This project is still under development and is heavly subject to changes, there are many vital instruction missing, and the computer is being heavily tested.
+**NOTE** - This project is still under development and is heavily subject to changes, there are many vital instruction missing, and the computer is being heavily tested.
 
 ## Architecture Overview
 
