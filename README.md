@@ -26,6 +26,8 @@ This project aims to replicate the instruction set, memory architecture, and cyc
 
 ## Getting Started
 
+**NOTE** - The following instructions are designed to get this project up and running on your local system with the recommended program versions, and might not work if you have a different version.
+
 ### Prerequisites
 
 Requirements to install and run the program:
