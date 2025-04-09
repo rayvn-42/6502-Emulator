@@ -49,6 +49,14 @@ class CPU:
         '''(Load Y absolute) Loads a value into the Y register using a 16-bit address,    Cycles: 4'''
         self.INS_LDY_ABSX: Byte = 0xBC
         '''(Load Y absolute, X) Loads a value into the Y register using a 16-bit address + value in X register,    Cycles: 4 (+1 if page crossed)'''
+        self.INS_STA_ZP: Byte = 0x85
+        '''(Store A zero page) Stores the contents of the A register into zero page,    Cycles: 3'''
+        self.INS_STA_ZPX: Byte = 0x95
+        '''(Store A zero page, X) Stores the contents of the A register into zero page + value in X register,    Cycles: 4'''
+        self.INS_STA_ABS: Byte = 0x8D
+        '''(Store A absolute) Stores the contents of the A register into memory using a 16-bit address,    Cycles: 4'''
+        self.INS_STA_ABSX: Byte = 0x9D
+        '''(Store A absolute, X) Stores the contents of the A register into memory using a 16-bit address + value X register,    Cycles: 5'''
         self.INS_JSR: Byte = 0x20
         '''(Jump to subroutine) Pushes an address to the stack then jumps to that address in memory    Cycles: 4'''
         self.INS_NOP: Byte = 0xEA
@@ -293,6 +301,27 @@ class CPU:
                 case self.INS_NOP:
                     self.PC += 1
                     cycles_lst[0] -= 1
+                case self.INS_STA_ZP:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    memory.WriteByte( cycles_lst, ZeroPageAddress & 0xFF, self.A_reg )
+                case self.INS_STA_ZPX:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    Address: Byte = ZeroPageAddress + self.X_reg
+                    cycles_lst[0] -= 1
+                    memory.WriteByte( cycles_lst, Address & 0xFF, self.A_reg )
+                case self.INS_STA_ABS:
+                    LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    Address: Word = LSB_Byte | (MSB_Byte << 8)
+                    memory.WriteByte( cycles_lst, Address & 0xFFFF, self.A_reg )
+                case self.INS_STA_ABSX:
+                    LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    BaseAddress: Word = LSB_Byte | (MSB_Byte << 8)
+                    Address: Word = BaseAddress + self.X_reg
+                    if (BaseAddress & 0xFF00) != (Address & 0xFF00):
+                        cycles_lst[0] -= 1
+                    memory.WriteByte( cycles_lst, Address, self.A_reg )
                 case _:
                     print(f"Instruction not handled: {Ins}")
                     

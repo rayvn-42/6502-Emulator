@@ -34,6 +34,13 @@ class TestComputer(unittest.TestCase):
         self.assertFalse(self.cpu.V_flag)
         self.assertFalse(self.cpu.C_flag)
 
+    def VerifyFlags_NoMod_STA(self):
+        self.assertFalse(self.cpu.I_flag)
+        self.assertFalse(self.cpu.D_flag)
+        self.assertFalse(self.cpu.B_flag)
+        self.assertFalse(self.cpu.V_flag)
+        self.assertFalse(self.cpu.C_flag)
+
     def test_LDA_IM(self):
         self.mem[0xFFFC] = self.cpu.INS_LDA_IM
         self.mem[0xFFFD] = 0x84
@@ -339,6 +346,65 @@ class TestComputer(unittest.TestCase):
         self.assertEqual(self.cpu.Y_reg, 0x84)
         self.assertIn(CyclesUsed, [4, 5])
         self.VerifyFlags_NoMod_LDY()
+
+    def test_STA_ZP(self):
+        self.cpu.A_reg = 0xA4
+        self.mem[0xFFFC] = self.cpu.INS_STA_ZP
+        self.mem[0xFFFD] = 0x42
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.mem[0x42], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 3)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_ZP_Wrap(self):
+        self.cpu.A_reg = 0xA4
+        self.mem[0xFFFC] = self.cpu.INS_STA_ZP
+        self.mem[0xFFFD] = 0x100
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.mem[0x0], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 3)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_ZPX(self):
+        self.cpu.A_reg = 0xA4
+        self.cpu.X_reg = 0x15
+        self.mem[0xFFFC] = self.cpu.INS_STA_ZPX
+        self.mem[0xFFFD] = 0x13
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0x13 + self.cpu.X_reg], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 4)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_ZPX_Wrap(self):
+        self.cpu.A_reg = 0xA4
+        self.cpu.X_reg = 0xF1
+        self.mem[0xFFFC] = self.cpu.INS_STA_ZPX
+        self.mem[0xFFFD] = 0x0F
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0x0], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 4)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_ABS(self):
+        self.cpu.A_reg = 0xA5
+        self.mem[0xFFFC] = self.cpu.INS_STA_ABS
+        self.mem[0xFFFD] = 0x42
+        self.mem[0xFFFE] = 0x42
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0x4242], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 4)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_ABSX(self):
+        self.cpu.X_reg = 0x14
+        self.cpu.A_reg = 0x15
+        self.mem[0xFFFC] = self.cpu.INS_STA_ABSX
+        self.mem[0xFFFD] = 0x42
+        self.mem[0xFFFE] = 0x43
+        CyclesUsed = self.cpu.exec(self.mem, 5)
+        self.assertEqual(self.mem[0x4342 + self.cpu.X_reg], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 5)
+        self.VerifyFlags_NoMod_STA()
 
     def test_NOP(self):
         self.mem[0xFFFC] = self.cpu.INS_NOP

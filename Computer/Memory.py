@@ -22,3 +22,7 @@ class Mem:
         self.Data[address + 1] = (data >> 8)
         cycles[0] -= 2
 
+    def WriteByte(self, cycles: list, address: u32, data: Byte):
+        self.Data[address] = data & 0xFFFF
+        cycles[0] -= 1
+

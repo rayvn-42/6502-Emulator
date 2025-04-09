@@ -1,4 +1,5 @@
 .Testing/
+.vscode/
 Computer.log
 __pycache__/
 Computer/__pycache__/
