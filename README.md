@@ -104,6 +104,11 @@ Ran 41 tests in 0.038s
 OK
 ```
 
+## Future Implementations
+For me, I want to use it to maybe emulate an NES, an MSBasic computer, for now at least.
+
+I'm not sure if I can do it, but its always good to try.
+
 ## Contributing
 
 ### To contribute to this project:
