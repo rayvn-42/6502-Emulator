@@ -56,7 +56,25 @@ class CPU:
         self.INS_STA_ABS: Byte = 0x8D
         '''(Store A absolute) Stores the contents of the A register into memory using a 16-bit address,    Cycles: 4'''
         self.INS_STA_ABSX: Byte = 0x9D
-        '''(Store A absolute, X) Stores the contents of the A register into memory using a 16-bit address + value X register,    Cycles: 5'''
+        '''(Store A absolute, X) Stores the contents of the A register into memory using a 16-bit address + value in X register,    Cycles: 5'''
+        self.INS_STA_ABSY: Byte = 0x99
+        '''(Store A absolute, Y) Stores the contents of the A register into memory using a 16-bit address + value in Y register,    Cycles: 5'''
+        self.INS_STA_INDX: Byte = 0x81
+        '''(Store A indirect X) Stores the contents of the A register into memory using a ZP pointer = ZP address + value in X register, Cycles: 6'''
+        self.INS_STA_INDY: Byte = 0x91
+        '''(Store A indirect Y) Stores the contents of the A register into memory using a ZP pointer = ZP address + value in Y register, Cycles: 5 (+1 if page crossed)'''
+        self.INS_STX_ZP: Byte = 0x86
+        '''(Store X zero page) Stores the contents of the X register into zero page,    Cycles: 3'''
+        self.INS_STX_ZPY: Byte = 0x96
+        '''(Store X zero page, Y) Stores the contents of the X register into zero page + value in Y register,    Cycles: 4'''
+        self.INS_STX_ABS: Byte = 0x8E
+        '''(Store X absolute) Stores the contents of the X register into memory using a 16-bit address,    Cycles: 4'''
+        self.INS_STY_ZP: Byte = 0x84
+        '''(Store Y zero page) Stores the contents of the Y register into zero page,    Cycles: 3'''
+        self.INS_STY_ZPX: Byte = 0x94
+        '''(Store Y zero page, X) Stores the contents of the Y register into zero page + value in X register,    Cycles: 4'''
+        self.INS_STY_ABS: Byte = 0x8C
+        '''(Store Y absolute) Stores the contents of the Y register into memory using a 16-bit address,    Cycles: 4'''
         self.INS_JSR: Byte = 0x20
         '''(Jump to subroutine) Pushes an address to the stack then jumps to that address in memory    Cycles: 4'''
         self.INS_NOP: Byte = 0xEA
@@ -172,6 +190,7 @@ class CPU:
             cycles_lst = [cycles]
             Ins: Byte = self.fetchByte( memory, cycles_lst )
             match Ins:
+                #LDA (load into A register) instruction
                 case self.INS_LDA_IM:
                     Value: Byte = self.fetchByte( memory, cycles_lst )
                     self.A_reg = Value
@@ -224,9 +243,8 @@ class CPU:
                     self.LDASetStatus()
                 case self.INS_LDA_INDY:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
-                    ZP_Pointer: Byte = ZeroPageAddress
-                    LSB_Byte: Byte = self.readByte( memory, ZP_Pointer, cycles_lst )
-                    MSB_Byte: Byte = self.readByte( memory, (ZP_Pointer + 1) & 0xFF, cycles_lst )
+                    LSB_Byte: Byte = self.readByte( memory, ZeroPageAddress, cycles_lst )
+                    MSB_Byte: Byte = self.readByte( memory, (ZeroPageAddress + 1) & 0xFF, cycles_lst )
                     BaseAddress: Word = (MSB_Byte << 8) | LSB_Byte
                     Address: Word = BaseAddress + self.Y_reg
                     if (BaseAddress & 0xFF00) != (Address & 0xFF00):
@@ -234,6 +252,7 @@ class CPU:
                     Value: Byte = self.readByte( memory, Address, cycles_lst )
                     self.A_reg = Value
                     self.LDASetStatus()
+                #LDX (load into X register) instruction
                 case self.INS_LDX_IM:
                     Value: Byte = self.fetchByte( memory, cycles_lst )
                     self.X_reg = Value
@@ -263,6 +282,7 @@ class CPU:
                         cycles_lst[0] -= 1
                     self.X_reg = self.readByte( memory, Address, cycles_lst )
                     self.LDXSetStatus()
+                #LDY (load into Y register) instruction
                 case self.INS_LDY_IM:
                     Value: Byte = self.fetchByte( memory, cycles_lst )
                     self.Y_reg = Value
@@ -292,15 +312,18 @@ class CPU:
                         cycles_lst[0] -= 1
                     self.Y_reg = self.readByte( memory, Address, cycles_lst )
                     self.LDYSetStatus()
+                #JSR (jump to subroutine) instruction
                 case self.INS_JSR:
                     SubAddr: Word = self.fetchWord( memory, cycles_lst )
                     self.SP -= 2
                     memory.WriteWord( cycles_lst, self.SP, self.PC - 1 )
                     self.PC = SubAddr
                     cycles_lst[0] -= 1
+                #NOP (no operation) instruction
                 case self.INS_NOP:
                     self.PC += 1
                     cycles_lst[0] -= 1
+                #STA store into A register instruction
                 case self.INS_STA_ZP:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     memory.WriteByte( cycles_lst, ZeroPageAddress & 0xFF, self.A_reg )
@@ -319,9 +342,63 @@ class CPU:
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     BaseAddress: Word = LSB_Byte | (MSB_Byte << 8)
                     Address: Word = BaseAddress + self.X_reg
+                    cycles_lst[0] -= 1
                     if (BaseAddress & 0xFF00) != (Address & 0xFF00):
                         cycles_lst[0] -= 1
                     memory.WriteByte( cycles_lst, Address, self.A_reg )
+                case self.INS_STA_ABSY:
+                    LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    BaseAddress: Word = LSB_Byte | (MSB_Byte << 8)
+                    Address: Word = BaseAddress + self.Y_reg
+                    cycles_lst[0] -= 1
+                    if (BaseAddress & 0xFF00) != (Address & 0xFF00):
+                        cycles_lst[0] -= 1
+                    memory.WriteByte( cycles_lst, Address, self.A_reg )
+                case self.INS_STA_INDX:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    ZP_Pointer: Byte = (ZeroPageAddress + self.X_reg) & 0xFF
+                    cycles_lst[0] -= 1
+                    LSB_Byte: Byte = self.readByte( memory, ZP_Pointer, cycles_lst )
+                    MSB_Byte: Byte = self.readByte( memory, (ZP_Pointer + 1) & 0xFF, cycles_lst )
+                    Address: Word = (MSB_Byte << 8) | LSB_Byte
+                    memory.WriteByte( cycles_lst, Address, self.A_reg )
+                case self.INS_STA_INDY:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    ZP_Pointer: Word = (ZeroPageAddress + self.Y_reg) & 0xFF
+                    LSB_Byte: Byte = self.readByte( memory, ZP_Pointer, cycles_lst )
+                    MSB_Byte: Byte = self.readByte( memory, (ZP_Pointer + 1) & 0xFF, cycles_lst )
+                    Address: Word = (MSB_Byte << 8) | LSB_Byte
+                    cycles_lst[0] -= 1
+                    memory.WriteByte( cycles_lst, Address, self.A_reg )
+                #STX store into X register instruction
+                case self.INS_STX_ZP:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    memory.WriteByte( cycles_lst, ZeroPageAddress & 0xFF, self.X_reg )
+                case self.INS_STX_ZPY:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    Address: Byte = ZeroPageAddress + self.Y_reg
+                    cycles_lst[0] -= 1
+                    memory.WriteByte( cycles_lst, Address & 0xFF, self.X_reg )
+                case self.INS_STX_ABS:
+                    LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    Address: Word = LSB_Byte | (MSB_Byte << 8)
+                    memory.WriteByte( cycles_lst, Address & 0xFFFF, self.X_reg )
+                #STY store into Y register instruction
+                case self.INS_STY_ZP:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    memory.WriteByte( cycles_lst, ZeroPageAddress & 0xFF, self.Y_reg )
+                case self.INS_STY_ZPX:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    Address: Byte = ZeroPageAddress + self.X_reg
+                    cycles_lst[0] -= 1
+                    memory.WriteByte( cycles_lst, Address & 0xFF, self.Y_reg )
+                case self.INS_STY_ABS:
+                    LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
+                    Address: Word = LSB_Byte | (MSB_Byte << 8)
+                    memory.WriteByte( cycles_lst, Address & 0xFFFF, self.Y_reg )
                 case _:
                     print(f"Instruction not handled: {Ins}")
                     

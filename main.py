@@ -35,11 +35,31 @@ class TestComputer(unittest.TestCase):
         self.assertFalse(self.cpu.C_flag)
 
     def VerifyFlags_NoMod_STA(self):
+        self.assertFalse(self.cpu.Z_flag)
         self.assertFalse(self.cpu.I_flag)
         self.assertFalse(self.cpu.D_flag)
         self.assertFalse(self.cpu.B_flag)
         self.assertFalse(self.cpu.V_flag)
         self.assertFalse(self.cpu.C_flag)
+        self.assertFalse(self.cpu.N_flag)
+
+    def VerifyFlags_NoMod_STX(self):
+        self.assertFalse(self.cpu.Z_flag)
+        self.assertFalse(self.cpu.I_flag)
+        self.assertFalse(self.cpu.D_flag)
+        self.assertFalse(self.cpu.B_flag)
+        self.assertFalse(self.cpu.V_flag)
+        self.assertFalse(self.cpu.C_flag)
+        self.assertFalse(self.cpu.N_flag)
+
+    def VerifyFlags_NoMod_STY(self):
+        self.assertFalse(self.cpu.Z_flag)
+        self.assertFalse(self.cpu.I_flag)
+        self.assertFalse(self.cpu.D_flag)
+        self.assertFalse(self.cpu.B_flag)
+        self.assertFalse(self.cpu.V_flag)
+        self.assertFalse(self.cpu.C_flag)
+        self.assertFalse(self.cpu.N_flag)
 
     def test_LDA_IM(self):
         self.mem[0xFFFC] = self.cpu.INS_LDA_IM
@@ -194,8 +214,8 @@ class TestComputer(unittest.TestCase):
         self.mem[0xFFFC] = self.cpu.INS_LDA_INDY
         self.mem[0xFFFD] = 0x20
         self.mem[0x0020] = 0xF0
-        self.mem[0x0021] = 0x80
-        self.mem[0x81EF] = 0x55
+        self.mem[0x0021] = 0xFF
+        self.mem[0x00EF] = 0x55
         CyclesUsed = self.cpu.exec(self.mem, 6)
         self.assertEqual(self.cpu.A_reg, 0x55)
         self.assertEqual(CyclesUsed, 6)
@@ -405,6 +425,99 @@ class TestComputer(unittest.TestCase):
         self.assertEqual(self.mem[0x4342 + self.cpu.X_reg], self.cpu.A_reg)
         self.assertEqual(CyclesUsed, 5)
         self.VerifyFlags_NoMod_STA()
+
+    def test_STA_ABSY(self):
+        self.cpu.Y_reg = 0x98
+        self.cpu.A_reg = 0x09
+        self.mem[0xFFFC] = self.cpu.INS_STA_ABSY
+        self.mem[0xFFFD] = 0x61
+        self.mem[0xFFFE] = 0xf6
+        CyclesUsed = self.cpu.exec(self.mem, 5)
+        self.assertEqual(self.mem[0xf661 + self.cpu.Y_reg], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 5)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_INDX(self):
+        self.cpu.X_reg = 0x42
+        self.cpu.A_reg = 0x61
+        self.mem[0xFFFC] = self.cpu.INS_STA_INDX
+        self.mem[0xFFFD] = 0x97
+        self.mem[0x0097 + self.cpu.X_reg] = 0x2A
+        self.mem[(0x0097 + self.cpu.X_reg) + 0x01] = 0x25
+        CyclesUsed = self.cpu.exec(self.mem, 6)
+        self.assertEqual(self.mem[0x252A], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 6)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STA_INDY(self):
+        self.cpu.Y_reg = 0x24
+        self.cpu.A_reg = 0xE3
+        self.mem[0xFFFC] = self.cpu.INS_STA_INDY
+        self.mem[0xFFFD] = 0x05
+        self.mem[0x0005 + self.cpu.Y_reg] = 0x06
+        self.mem[(0x0005 + self.cpu.Y_reg) + 0x01] = 0xA7
+        CyclesUsed = self.cpu.exec(self.mem, 6)
+        self.assertEqual(self.mem[0xA706], self.cpu.A_reg)
+        self.assertEqual(CyclesUsed, 6)
+        self.VerifyFlags_NoMod_STA()
+
+    def test_STX_ZP(self):
+        self.cpu.X_reg = 0xC9
+        self.mem[0xFFFC] = self.cpu.INS_STX_ZP
+        self.mem[0xFFFD] = 0xDD
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.mem[0xDD], self.cpu.X_reg)
+        self.assertEqual(CyclesUsed, 3)
+        self.VerifyFlags_NoMod_STX()
+
+    def test_STX_ZPY(self):
+        self.cpu.X_reg = 0xD1
+        self.cpu.Y_reg = 0x2F
+        self.mem[0xFFFC] = self.cpu.INS_STX_ZPY
+        self.mem[0xFFFD] = 0xCC
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0xCC + self.cpu.Y_reg], self.cpu.X_reg)
+        self.assertEqual(CyclesUsed, 4)
+        self.VerifyFlags_NoMod_STX()
+
+    def test_STX_ABS(self):
+        self.cpu.X_reg = 0xAE
+        self.mem[0xFFFC] = self.cpu.INS_STX_ABS
+        self.mem[0xFFFD] = 0x22
+        self.mem[0xFFFE] = 0xE7
+        CYclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0xE722], self.cpu.X_reg)
+        self.assertEqual(CYclesUsed, 4)
+        self.VerifyFlags_NoMod_STX()
+
+    def test_STY_ZP(self):
+        self.cpu.Y_reg = 0xBD
+        self.mem[0xFFFC] = self.cpu.INS_STY_ZP
+        self.mem[0xFFFD] = 0x7E
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.mem[0x7E], self.cpu.Y_reg)
+        self.assertEqual(CyclesUsed, 3)
+        self.VerifyFlags_NoMod_STY()
+
+    def test_STY_ZPX(self):
+        self.cpu.Y_reg = 0xD1
+        self.cpu.X_reg = 0x2F
+        self.mem[0xFFFC] = self.cpu.INS_STY_ZPX
+        self.mem[0xFFFD] = 0xCC
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0xFB], self.cpu.Y_reg)
+        self.assertEqual(CyclesUsed, 4)
+        self.VerifyFlags_NoMod_STY()
+
+    def test_STY_ABS(self):
+        self.cpu.Y_reg = 0xEA
+        self.mem[0xFFFC] = self.cpu.INS_STY_ABS
+        self.mem[0xFFFD] = 0x17
+        self.mem[0xFFFE] = 0x35
+        CYclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.mem[0x3517], self.cpu.Y_reg)
+        self.assertEqual(CYclesUsed, 4)
+        self.VerifyFlags_NoMod_STY()
 
     def test_NOP(self):
         self.mem[0xFFFC] = self.cpu.INS_NOP

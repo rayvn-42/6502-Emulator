@@ -19,10 +19,10 @@ class Mem:
 
     def WriteWord(self, cycles: list, address: u32, data: Word):
         self.Data[address]     = data & 0xFF
-        self.Data[address + 1] = (data >> 8)
+        self.Data[address + 1] = (data >> 8) & 0xFF
         cycles[0] -= 2
 
     def WriteByte(self, cycles: list, address: u32, data: Byte):
-        self.Data[address] = data & 0xFFFF
+        self.Data[address] = data & 0xFF
         cycles[0] -= 1
 
