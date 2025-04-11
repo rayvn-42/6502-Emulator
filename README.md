@@ -26,6 +26,8 @@ This project aims to replicate the instruction set, memory architecture, and cyc
 
 ## Getting Started
 
+**NOTE** - The following instructions are designed to get this project up and running on your local system with the recommended program versions, and might not work if you have a different version.
+
 ### Prerequisites
 
 Requirements to install and run the program:
@@ -59,22 +61,55 @@ ok
 test_LDA_ABS (__main__.TestComputer.test_LDA_ABS) ... ok
 test_LDA_ABSX (__main__.TestComputer.test_LDA_ABSX) ... ok
 test_LDA_ABSX_Wrap (__main__.TestComputer.test_LDA_ABSX_Wrap) ... ok
+test_LDA_ABSY (__main__.TestComputer.test_LDA_ABSY) ... ok
+test_LDA_ABSY_Wrap (__main__.TestComputer.test_LDA_ABSY_Wrap) ... ok
 test_LDA_IM (__main__.TestComputer.test_LDA_IM) ... ok
 test_LDA_IM_LT_NC (__main__.TestComputer.test_LDA_IM_LT_NC) ... ok
 test_LDA_IM_ZERO (__main__.TestComputer.test_LDA_IM_ZERO) ... ok
+test_LDA_INDX (__main__.TestComputer.test_LDA_INDX) ... ok
+test_LDA_INDX_Wrap (__main__.TestComputer.test_LDA_INDX_Wrap) ... ok
+test_LDA_INDY (__main__.TestComputer.test_LDA_INDY) ... ok
+test_LDA_INDY_Wrap (__main__.TestComputer.test_LDA_INDY_Wrap) ... ok
 test_LDA_ZP (__main__.TestComputer.test_LDA_ZP) ... ok
 test_LDA_ZPX (__main__.TestComputer.test_LDA_ZPX) ... ok
 test_LDA_ZPX_Wrap (__main__.TestComputer.test_LDA_ZPX_Wrap) ... ok
-st_NOP_IF_CYCLES_EQ_0) ... ok
-st_NOP_IF_CYCLES_EQ_0) ... ok
-st_NOP_IF_CYCLES_EQ_0) ... ok
-st_NOP_IF_CYCLES_EQ_0) ... ok
+test_LDX_ABS (__main__.TestComputer.test_LDX_ABS) ... ok
+test_LDX_ABSY (__main__.TestComputer.test_LDX_ABSY) ... ok
+test_LDX_ABSY_Wrap (__main__.TestComputer.test_LDX_ABSY_Wrap) ... ok
+test_LDX_IM (__main__.TestComputer.test_LDX_IM) ... ok
+test_LDX_IM_LT_NC (__main__.TestComputer.test_LDX_IM_LT_NC) ... ok
+test_LDX_IM_ZERO (__main__.TestComputer.test_LDX_IM_ZERO) ... ok
+test_LDX_ZP (__main__.TestComputer.test_LDX_ZP) ... ok
+test_LDX_ZPY (__main__.TestComputer.test_LDX_ZPY) ... ok
+test_LDX_ZPY_Wrap (__main__.TestComputer.test_LDX_ZPY_Wrap) ... ok
+test_LDY_ABS (__main__.TestComputer.test_LDY_ABS) ... ok
+test_LDY_ABSX (__main__.TestComputer.test_LDY_ABSX) ... ok
+test_LDY_ABSX_Wrap (__main__.TestComputer.test_LDY_ABSX_Wrap) ... ok
+test_LDY_IM (__main__.TestComputer.test_LDY_IM) ... ok
+test_LDY_IM_LT_NC (__main__.TestComputer.test_LDY_IM_LT_NC) ... ok
+test_LDY_IM_ZERO (__main__.TestComputer.test_LDY_IM_ZERO) ... ok
+test_LDY_ZP (__main__.TestComputer.test_LDY_ZP) ... ok
+test_LDY_ZPX (__main__.TestComputer.test_LDY_ZPX) ... ok
+test_NOP (__main__.TestComputer.test_NOP) ... ok
+test_NOP_IF_CYCLES_EQ_0 (__main__.TestComputer.test_NOP_IF_CYCLES_EQ_0) ... ok
+test_STA_ABS (__main__.TestComputer.test_STA_ABS) ... ok
+test_STA_ABSX (__main__.TestComputer.test_STA_ABSX) ... Instruction not handled: 0
+ok
+test_STA_ZP (__main__.TestComputer.test_STA_ZP) ... ok
+test_STA_ZPX (__main__.TestComputer.test_STA_ZPX) ... ok
+test_STA_ZPX_Wrap (__main__.TestComputer.test_STA_ZPX_Wrap) ... ok
+test_STA_ZP_Wrap (__main__.TestComputer.test_STA_ZP_Wrap) ... ok
 
-----------------------------------------------------------------------  
-Ran 11 tests in 0.011s
+----------------------------------------------------------------------
+Ran 41 tests in 0.038s
 
 OK
 ```
+
+## Future Implementations
+For me, I want to use it to maybe emulate an NES, an MSBasic computer, for now at least.
+
+I'm not sure if I can do it, but its always good to try.
 
 ## Contributing
 

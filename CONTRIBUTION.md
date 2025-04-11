@@ -1,5 +1,5 @@
 # Contribution guidlines
-Thank you for considering contributing to Logic Simulator! Your contributions help make this project better for everyone.
+Thank you for considering contributing to 6502 Emulator! Your contributions help make this project better for everyone.
 
 ## How to Contribute
 - **Step 1** - Fork this repository
