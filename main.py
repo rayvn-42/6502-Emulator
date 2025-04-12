@@ -519,6 +519,99 @@ class TestComputer(unittest.TestCase):
         self.assertEqual(CYclesUsed, 4)
         self.VerifyFlags_NoMod_STY()
 
+    def test_TAX_IMP(self):
+        self.cpu.A_reg = 0x80
+        self.mem[0xFFFC] = self.cpu.INS_TAX_IMP
+        CyclesUsed = self.cpu.exec(self.mem, 2)
+        self.assertEqual(self.cpu.X_reg, 0x80)
+        self.assertEqual(CyclesUsed, 2)
+        self.assertTrue(self.cpu.N_flag)
+        self.assertFalse(self.cpu.Z_flag)
+
+    def test_TAY_IMP(self):
+        self.cpu.A_reg = 0x00
+        self.mem[0xFFFC] = self.cpu.INS_TAY_IMP
+        CyclesUsed = self.cpu.exec(self.mem, 2)
+        self.assertEqual(self.cpu.Y_reg, 0x00)
+        self.assertEqual(CyclesUsed, 2)
+        self.assertFalse(self.cpu.N_flag)
+        self.assertTrue(self.cpu.Z_flag)
+
+    def test_TXA_IMP(self):
+        self.cpu.X_reg = 0x7F
+        self.mem[0xFFFC] = self.cpu.INS_TXA_IMP
+        CyclesUsed = self.cpu.exec(self.mem, 2)
+        self.assertEqual(self.cpu.A_reg, 0x7F)
+        self.assertEqual(CyclesUsed, 2)
+        self.assertFalse(self.cpu.N_flag)
+        self.assertFalse(self.cpu.Z_flag)
+
+    def test_TYA_IMP(self):
+        self.cpu.A_reg = 0x00
+        self.mem[0xFFFC] = self.cpu.INS_TYA_IMP
+        CyclesUsed = self.cpu.exec(self.mem, 2)
+        self.assertEqual(self.cpu.A_reg, 0x00)
+        self.assertEqual(CyclesUsed, 2)
+        self.assertFalse(self.cpu.N_flag)
+        self.assertTrue(self.cpu.Z_flag)
+
+    def test_TSX_IMP(self):
+        self.cpu.SP = 0xFE
+        self.mem[0xFFFC] = self.cpu.INS_TSX_IMP
+        CyclesUsed = self.cpu.exec(self.mem, 2)
+        self.assertEqual(self.cpu.X_reg, 0xFE)
+        self.assertEqual(CyclesUsed, 2)
+        self.assertTrue(self.cpu.N_flag)
+        self.assertFalse(self.cpu.Z_flag)
+
+    def test_TXS_IMP(self):
+        self.cpu.X_reg = 0xAB
+        self.mem[0xFFFC] = self.cpu.INS_TXS_IMP
+        CyclesUsed = self.cpu.exec(self.mem, 2)
+        self.assertEqual(self.cpu.SP, 0xAB)
+        self.assertEqual(CyclesUsed, 2)
+        self.assertFalse(self.cpu.N_flag)
+        self.assertFalse(self.cpu.Z_flag)
+
+    def test_PHA(self):
+        self.cpu.A_reg = 0x42
+        self.cpu.SP = 0xFD
+        self.mem[0xFFFC] = self.cpu.INS_PHA
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.cpu.SP, 0xFC)
+        self.assertEqual(self.mem[0x01FD], 0x42)
+        self.assertEqual(CyclesUsed, 3)
+
+    def test_PHP(self):
+        self.cpu.P_status = 0b10110101
+        self.cpu.SP = 0xFC
+        self.mem[0xFFFC] = self.cpu.INS_PHP
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.cpu.SP, 0xFB)
+        self.assertEqual(self.mem[0x01FC], 0b10110101 | 0b00110000)
+        self.assertEqual(CyclesUsed, 3)
+
+    def test_PLA(self):
+        self.cpu.SP = 0xFC
+        self.mem[0x01FD] = 0x7F
+        self.mem[0xFFFC] = self.cpu.INS_PLA
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.cpu.SP, 0xFD)
+        self.assertEqual(self.cpu.A_reg, 0x7F)
+        self.assertEqual(CyclesUsed, 4)
+        self.assertFalse(self.cpu.Z_flag)
+        self.assertFalse(self.cpu.N_flag)
+
+    def test_PLP(self):
+        self.cpu.SP = 0xFC
+        self.mem[0x01FD] = 0b11001101
+        self.mem[0xFFFC] = self.cpu.INS_PLP
+        CyclesUsed = self.cpu.exec(self.mem, 4)
+        self.assertEqual(self.cpu.SP, 0xFD)
+        ExpectedStatus = (0b11001101 & 0b11001111) | 0b00100000
+        self.assertEqual(self.cpu.P_status, ExpectedStatus)
+        self.assertEqual(CyclesUsed, 4)
+
     def test_NOP(self):
         self.mem[0xFFFC] = self.cpu.INS_NOP
         CyclesUsed = self.cpu.exec(self.mem, 2)

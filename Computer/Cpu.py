@@ -75,10 +75,30 @@ class CPU:
         '''(Store Y zero page, X) Stores the contents of the Y register into zero page + value in X register,    Cycles: 4'''
         self.INS_STY_ABS: Byte = 0x8C
         '''(Store Y absolute) Stores the contents of the Y register into memory using a 16-bit address,    Cycles: 4'''
+        self.INS_TAX_IMP: Byte = 0xAA
+        '''(Transfer A to X) Transfers the value in A register to X register, Cycles: 2'''
+        self.INS_TAY_IMP: Byte = 0xA8
+        '''(Transfer A to Y) Transfers the value in A register to Y register, Cycles: 2'''
+        self.INS_TSX_IMP: Byte = 0xBA
+        '''(Transfer stack to X) Transfers the value in the stack to X register, Cycles: 2'''
+        self.INS_TXA_IMP: Byte = 0x8A
+        '''(Transfer X to A) Transfers the value in X register to A register, Cycles: 2'''
+        self.INS_TXS_IMP: Byte = 0x9A
+        '''(Transfer X to stack) Transfers the value in X register to the stack, Cycles: 2'''
+        self.INS_TYA_IMP: Byte = 0x98
+        '''(Transfer Y to A) Transfers the value in Y register to A register, Cycles: 2'''
         self.INS_JSR: Byte = 0x20
         '''(Jump to subroutine) Pushes an address to the stack then jumps to that address in memory    Cycles: 4'''
         self.INS_NOP: Byte = 0xEA
         '''(No operation) Increments the program counter and does nothing,    Cycles: 2'''
+        self.INS_PHA: Byte = 0x48
+        '''(Push A) Pushes a copy of A register on to the stack,    Cycles: 3'''
+        self.INS_PHP: Byte = 0x08
+        '''(Push PS) Pushes status flags on to the stack,    Cycles: 3'''
+        self.INS_PLA: Byte = 0x68
+        '''(Pull A) Pulls a byte from stack and into A register,    Cycles: 4'''
+        self.INS_PLP: Byte = 0x28
+        '''(Pull PS) Pulls a byte from stack and into the processor status,    Cycles: 4'''
         self.PLATFORM_BIG_ENDIAN = (False if byteorder == "little" else True)
 
     def get_flag(self, bit: int) -> int:
@@ -172,15 +192,15 @@ class CPU:
 
         return Data
 
-    def LDASetStatus(self):
+    def ASetStatus(self):
         self.Z_flag = (True if self.A_reg == 0 else False)
         self.N_flag = (True if self.A_reg & 0b10000000 else False)
     
-    def LDXSetStatus(self):
+    def XSetStatus(self):
         self.Z_flag = (True if self.X_reg == 0 else False)
         self.N_flag = (True if self.X_reg & 0b10000000 else False)
 
-    def LDYSetStatus(self):
+    def YSetStatus(self):
         self.Z_flag = (True if self.Y_reg == 0 else False)
         self.N_flag = (True if self.Y_reg & 0b10000000 else False)
 
@@ -194,23 +214,23 @@ class CPU:
                 case self.INS_LDA_IM:
                     Value: Byte = self.fetchByte( memory, cycles_lst )
                     self.A_reg = Value
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_ZP:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     self.A_reg = self.readByte( memory, ZeroPageAddress, cycles_lst )
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_ZPX:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     ZeroPageAddress = (ZeroPageAddress + self.X_reg) & 0xFF
                     cycles_lst[0] -= 1
                     self.A_reg = self.readByte( memory, ZeroPageAddress, cycles_lst )
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_ABS:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     Address: Word = LSB_Byte | (MSB_Byte << 8)
                     self.A_reg = self.readByte( memory, Address, cycles_lst )
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_ABSX:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
@@ -220,7 +240,7 @@ class CPU:
                         cycles_lst[0] -= 1
                     Value: Byte = self.readByte( memory, Address, cycles_lst )
                     self.A_reg = Value
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_ABSY:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
@@ -230,7 +250,7 @@ class CPU:
                         cycles_lst[0] -= 1
                     Value: Byte = self.readByte( memory, Address, cycles_lst )
                     self.A_reg = Value
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_INDX:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     ZP_Pointer: Byte = (ZeroPageAddress + self.X_reg) & 0xFF
@@ -240,7 +260,7 @@ class CPU:
                     Address: Word = (MSB_Byte << 8) | LSB_Byte
                     Value: Byte = self.readByte( memory, Address, cycles_lst )
                     self.A_reg = Value
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 case self.INS_LDA_INDY:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     LSB_Byte: Byte = self.readByte( memory, ZeroPageAddress, cycles_lst )
@@ -251,28 +271,28 @@ class CPU:
                         cycles_lst[0] -= 1
                     Value: Byte = self.readByte( memory, Address, cycles_lst )
                     self.A_reg = Value
-                    self.LDASetStatus()
+                    self.ASetStatus()
                 #LDX (load into X register) instruction
                 case self.INS_LDX_IM:
                     Value: Byte = self.fetchByte( memory, cycles_lst )
                     self.X_reg = Value
-                    self.LDXSetStatus()
+                    self.XSetStatus()
                 case self.INS_LDX_ZP:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     self.X_reg = self.readByte( memory, ZeroPageAddress, cycles_lst )
-                    self.LDXSetStatus()
+                    self.XSetStatus()
                 case self.INS_LDX_ZPY:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     ZeroPageAddress = (ZeroPageAddress + self.Y_reg) & 0xFF
                     cycles_lst[0] -= 1
                     self.X_reg = self.readByte( memory, ZeroPageAddress, cycles_lst )
-                    self.LDXSetStatus()
+                    self.XSetStatus()
                 case self.INS_LDX_ABS:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     Address: Word = LSB_Byte | (MSB_Byte << 8)
                     self.X_reg = self.readByte( memory, Address, cycles_lst )
-                    self.LDXSetStatus()
+                    self.XSetStatus()
                 case self.INS_LDX_ABSY:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
@@ -281,28 +301,28 @@ class CPU:
                     if (BaseAddress & 0xFF00) != (Address & 0xFF00):
                         cycles_lst[0] -= 1
                     self.X_reg = self.readByte( memory, Address, cycles_lst )
-                    self.LDXSetStatus()
+                    self.XSetStatus()
                 #LDY (load into Y register) instruction
                 case self.INS_LDY_IM:
                     Value: Byte = self.fetchByte( memory, cycles_lst )
                     self.Y_reg = Value
-                    self.LDYSetStatus()
+                    self.YSetStatus()
                 case self.INS_LDY_ZP:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     self.Y_reg = self.readByte( memory, ZeroPageAddress, cycles_lst )
-                    self.LDYSetStatus()
+                    self.YSetStatus()
                 case self.INS_LDY_ZPX:
                     ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
                     ZeroPageAddress = (ZeroPageAddress + self.X_reg) & 0xFF
                     cycles_lst[0] -= 1
                     self.Y_reg = self.readByte( memory, ZeroPageAddress, cycles_lst )
-                    self.LDYSetStatus()
+                    self.YSetStatus()
                 case self.INS_LDY_ABS:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     Address: Word = LSB_Byte | (MSB_Byte << 8)
                     self.Y_reg = self.readByte( memory, Address, cycles_lst )
-                    self.LDYSetStatus()
+                    self.YSetStatus()
                 case self.INS_LDY_ABSX:
                     LSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
@@ -311,7 +331,7 @@ class CPU:
                     if (BaseAddress & 0xFF00) != (Address & 0xFF00):
                         cycles_lst[0] -= 1
                     self.Y_reg = self.readByte( memory, Address, cycles_lst )
-                    self.LDYSetStatus()
+                    self.YSetStatus()
                 #JSR (jump to subroutine) instruction
                 case self.INS_JSR:
                     SubAddr: Word = self.fetchWord( memory, cycles_lst )
@@ -399,6 +419,49 @@ class CPU:
                     MSB_Byte: Byte = self.fetchByte( memory, cycles_lst )
                     Address: Word = LSB_Byte | (MSB_Byte << 8)
                     memory.WriteByte( cycles_lst, Address & 0xFFFF, self.Y_reg )
+                #Transfer instructions
+                case self.INS_TAX_IMP:
+                    self.X_reg = self.A_reg
+                    self.XSetStatus()
+                    cycles_lst[0] -= 1
+                case self.INS_TAY_IMP:
+                    self.Y_reg = self.A_reg
+                    self.YSetStatus()
+                    cycles_lst[0] -= 1
+                case self.INS_TSX_IMP:
+                    self.X_reg = self.SP & 0xFF
+                    self.XSetStatus()
+                    cycles_lst[0] -= 1
+                case self.INS_TXA_IMP:
+                    self.A_reg = self.X_reg
+                    self.ASetStatus()
+                    cycles_lst[0] -= 1
+                case self.INS_TXS_IMP:
+                    self.SP = self.X_reg & 0xFF
+                    cycles_lst[0] -= 1
+                case self.INS_TYA_IMP:
+                    self.A_reg = self.Y_reg
+                    self.ASetStatus()
+                    cycles_lst[0] -= 1
+                #Push instructions
+                case self.INS_PHA:
+                    memory.WriteByte( cycles_lst, 0x0100 + self.SP, self.A_reg )
+                    self.SP = (self.SP - 1) & 0xFF
+                    cycles_lst[0] -= 1
+                case self.INS_PHP:
+                    Status = self.P_status | 0b00110000
+                    memory.WriteByte( cycles_lst, 0x0100 + self.SP, Status )
+                    self.SP = (self.SP - 1) & 0xFF
+                    cycles_lst[0] -= 1
+                case self.INS_PLA:
+                    self.SP = (self.SP + 1) & 0xFF
+                    self.A_reg = memory[0x0100 + self.SP]
+                    self.ASetStatus()
+                    cycles_lst[0] -= 3
+                case self.INS_PLP:
+                    self.SP = (self.SP + 1) & 0xFF
+                    self.P_status = (memory[0x0100 + self.SP] & 0b11001111) | 0b00100000
+                    cycles_lst[0] -= 3
                 case _:
                     print(f"Instruction not handled: {Ins}")
                     
