@@ -639,6 +639,23 @@ class TestComputer(unittest.TestCase):
         CyclesUsed = self.cpu.exec(self.mem, 1)
         self.assertEqual(CyclesUsed, 2)
 
+    def test_AND_IM(self):
+        self.cpu.A_reg = 0xF0
+        self.mem[0xFFFC] = self.cpu.INS_AND_IM
+        self.mem[0xFFFD] = 0x0F
+        CyclesUsed = self.cpu.exec( self.mem, 2 )
+        self.assertEqual(self.cpu.A_reg, 0xF0 & 0x0F)
+        self.assertEqual(CyclesUsed, 2)
+
+    def test_AND_ZP(self):
+        self.cpu.A_reg = 0xF0
+        self.mem[0xFFFC] = self.cpu.INS_AND_ZP
+        self.mem[0xFFFD] = 0x42
+        self.mem[0x0042] = 0x7F
+        CyclesUsed = self.cpu.exec(self.mem, 3)
+        self.assertEqual(self.cpu.A_reg, 0x70)
+        self.assertEqual(CyclesUsed, 3)
+
     def test_INS_NH(self):
         self.mem[0xFFFC] = 0x02
         self.mem[0xFFFD] = 0x00

@@ -99,6 +99,10 @@ class CPU:
         '''(Pull A) Pulls a byte from stack and into A register,    Cycles: 4'''
         self.INS_PLP: Byte = 0x28
         '''(Pull PS) Pulls a byte from stack and into the processor status,    Cycles: 4'''
+        self.INS_AND_IM: Byte = 0x29
+        '''(AND immediate) logical AND operation performed on the A register and an address in memory,    Cycles: 2'''
+        self.INS_AND_ZP: Byte = 0x25
+        '''(AND zero page) logical AND operation performed on the A register and an address in zero page,    Cycles: 3'''
         self.PLATFORM_BIG_ENDIAN = (False if byteorder == "little" else True)
 
     def get_flag(self, bit: int) -> int:
@@ -453,6 +457,7 @@ class CPU:
                     memory.WriteByte( cycles_lst, 0x0100 + self.SP, Status )
                     self.SP = (self.SP - 1) & 0xFF
                     cycles_lst[0] -= 1
+                #Pull instructions
                 case self.INS_PLA:
                     self.SP = (self.SP + 1) & 0xFF
                     self.A_reg = memory[0x0100 + self.SP]
@@ -462,6 +467,16 @@ class CPU:
                     self.SP = (self.SP + 1) & 0xFF
                     self.P_status = (memory[0x0100 + self.SP] & 0b11001111) | 0b00100000
                     cycles_lst[0] -= 3
+                #Logical instructions
+                case self.INS_AND_IM:
+                    Value: Byte = self.fetchByte( memory, cycles_lst )
+                    self.A_reg = self.A_reg & Value
+                    self.ASetStatus()
+                case self.INS_AND_ZP:
+                    ZeroPageAddress: Byte = self.fetchByte( memory, cycles_lst )
+                    Value: Byte = self.readByte( memory, ZeroPageAddress, cycles_lst )
+                    self.A_reg = self.A_reg & Value
+                    self.ASetStatus()
                 case _:
                     print(f"Instruction not handled: {Ins}")
                     
