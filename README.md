@@ -8,6 +8,7 @@ This project aims to replicate the instruction set, memory architecture, and cyc
 - Instruction set decoding
 - Support for various addressing mode (Immediate, Zero Page, Absolute, Indexed)
 - Emulation of CPU registers and flags
+- A whopping 18 different instruction (so far), and no interpreter for it so yeah!
 
 **NOTE** - This project is still under development and is heavily subject to changes, there are many vital instruction missing, and the computer is being heavily tested.
 
