@@ -1,6 +1,6 @@
 .Testing/
 .vscode/
-Computer.log
+*.log
 __pycache__/
 Computer/__pycache__/
 tempCodeRunnerFile.py
